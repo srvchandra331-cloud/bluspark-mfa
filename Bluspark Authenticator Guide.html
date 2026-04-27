@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bluspark MS Authenticator Setup Guide</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Segoe UI, Arial;
+    background: #0f172a;
+    color: #e5e7eb;
+}
+
+.container {
+    max-width: 750px;
+    margin: 40px auto;
+    background: #1e293b;
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+h1 { color: #38bdf8; }
+
+.device-btn {
+    padding: 12px 20px;
+    margin: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #334155;
+    color: #e5e7eb;
+}
+
+.device-btn.active {
+    background: #38bdf8;
+    color: #0f172a;
+}
+
+.step-box {
+    margin-top: 25px;
+    padding: 20px;
+    background: #0f172a;
+    border-radius: 12px;
+    border: 1px solid #334155;
+}
+
+.ui-preview {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #020617;
+    text-align: left;
+    color: #94a3b8;
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 18px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.next { background: #38bdf8; color: #0f172a; }
+.prev { background: #64748b; color: white; }
+.choice { background: #334155; color: #e5e7eb; }
+
+.progress {
+    height: 8px;
+    background: #334155;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    height: 8px;
+    width: 0%;
+    background: #38bdf8;
+    border-radius: 10px;
+}
+
+.success {
+    display: none;
+    margin-top: 20px;
+    color: #22c55e;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🔐 Bluspark MS Authenticator Setup Guide</h1>
+<p style="color:#94a3b8;">Secure access setup for Bluspark users</p>
+
+<p>Select your device</p>
+
+<button class="device-btn" onclick="start('android', this)">📱 Android</button>
+<button class="device-btn" onclick="start('iphone', this)">🍎 iPhone</button>
+
+<div class="progress">
+    <div id="progressBar" class="progress-bar"></div>
+</div>
+
+<div id="stepBox" class="step-box">
+    Select a device to begin
+</div>
+
+<div class="controls">
+    <button class="prev" onclick="prevStep()">Back</button>
+    <button class="next" onclick="nextStep()">Next</button>
+</div>
+
+<div class="success" id="successMsg">
+    🎉 Setup Completed Successfully!
+</div>
+
+</div>
+
+<script>
+let steps = [];
+let current = 0;
+
+const baseSteps = [
+{
+text: "Open your app store and search for Microsoft Authenticator.",
+ui: "🔍 Microsoft Authenticator"
+},
+{
+text: "Install and open the app.",
+ui: "📲 App Installed → Open"
+},
+{
+text: "Tap ➕ Add Account",
+ui: "➕ Add Account",
+question: "Do you see 'Add Account'?",
+yes: 3,
+no: "Restart the app or reinstall Microsoft Authenticator."
+},
+{
+text: "Select 🏢 Work or School Account",
+ui: "🏢 Work or School Account"
+},
+{
+text: "On your computer go to https://aka.ms/mfasetup and sign in.",
+ui: "🌐 Microsoft Sign-In Page"
+},
+{
+text: "Click Next until QR code appears.",
+ui: "⬜ QR Code Screen",
+question: "Do you see QR Code?",
+yes: 6,
+no: "Click 'Set up another way' or refresh the page."
+},
+{
+text: "Scan QR code using your phone.",
+ui: "📷 Scan QR"
+},
+{
+text: "Approve notification on your phone.",
+ui: "✅ Approve Sign-In"
+},
+{
+text: "Now sign in to your office account and approve login from the Authenticator app.",
+ui: "🎉 Login Approved"
+}
+];
+
+function start(device, btn) {
+    document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    steps = baseSteps;
+    current = 0;
+    showStep();
+}
+
+function showStep() {
+    let step = steps[current];
+
+    let html = `
+        <h3>Step ${current + 1}</h3>
+        <p>${step.text}</p>
+        <div class="ui-preview">${step.ui}</div>
+    `;
+
+    if (step.question) {
+        html += `
+            <p><b>${step.question}</b></p>
+            <button class="choice" onclick="handleYes(${step.yes})">Yes</button>
+            <button class="choice" onclick="handleNo('${step.no}')">No</button>
+        `;
+    }
+
+    document.getElementById("stepBox").innerHTML = html;
+
+    let progress = ((current + 1) / steps.length) * 100;
+    document.getElementById("progressBar").style.width = progress + "%";
+
+    if (current === steps.length - 1) {
+        document.getElementById("successMsg").style.display = "block";
+    } else {
+        document.getElementById("successMsg").style.display = "none";
+    }
+}
+
+function nextStep() {
+    if (current < steps.length - 1) {
+        current++;
+        showStep();
+    }
+}
+
+function prevStep() {
+    if (current > 0) {
+        current--;
+        showStep();
+    }
+}
+
+function handleYes(nextStepIndex) {
+    current = nextStepIndex;
+    showStep();
+}
+
+function handleNo(message) {
+    alert("Troubleshooting: " + message);
+}
+</script>
+
+</body>
+</html>
